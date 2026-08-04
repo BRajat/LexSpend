@@ -1,0 +1,23 @@
+# Python / backend
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.venv/
+backend/venv/
+backend/.env
+backend/*.egg-info/
+backend/dist/
+backend/.pytest_cache/
+
+# Node / frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env
+
+# Docker / root env
+.env
+
+# OS
+.DS_Store
+Thumbs.db
