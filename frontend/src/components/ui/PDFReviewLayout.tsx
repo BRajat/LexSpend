@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { apiClient } from "@/lib/api";
 
 interface ParsedLineItem {
@@ -22,7 +22,8 @@ interface ParsedInvoice {
 }
 
 export function PDFReviewLayout() {
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const [hasPdf, setHasPdf] = useState(false);
   const [parsed, setParsed] = useState<ParsedInvoice | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,10 +32,13 @@ export function PDFReviewLayout() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Set iframe src imperatively with a validated blob URL – never via state.
     const objectUrl = URL.createObjectURL(file);
-    // Only allow blob: URLs created by the browser to prevent XSS via src injection.
-    if (!objectUrl.startsWith("blob:")) return;
-    setPdfUrl(objectUrl);
+    if (iframeRef.current && objectUrl.startsWith("blob:")) {
+      iframeRef.current.src = objectUrl;
+      setHasPdf(true);
+    }
+
     setParsed(null);
     setError(null);
     setLoading(true);
@@ -63,21 +67,16 @@ export function PDFReviewLayout() {
         />
       </label>
 
-      {(pdfUrl || parsed) && (
+      {(hasPdf || parsed) && (
         <div className="flex gap-6 h-[70vh]">
           {/* Left: PDF viewer */}
           <div className="flex-1 rounded-xl border border-gray-200 overflow-hidden">
-            {pdfUrl ? (
-              <iframe
-                src={pdfUrl}
-                className="w-full h-full"
-                title="Invoice PDF"
-              />
-            ) : (
-              <div className="flex h-full items-center justify-center text-gray-400">
-                No PDF loaded
-              </div>
-            )}
+            <iframe
+              ref={iframeRef}
+              className="w-full h-full"
+              title="Invoice PDF"
+              sandbox="allow-same-origin"
+            />
           </div>
 
           {/* Right: Extracted data */}
@@ -96,7 +95,12 @@ export function PDFReviewLayout() {
                   ["Date", parsed.invoice_date],
                   ["Vendor", parsed.vendor_name],
                   ["Matter #", parsed.matter_number],
-                  ["Total", parsed.total_amount != null ? `${parsed.currency ?? ""} ${parsed.total_amount}` : undefined],
+                  [
+                    "Total",
+                    parsed.total_amount != null
+                      ? `${parsed.currency ?? ""} ${parsed.total_amount}`
+                      : undefined,
+                  ],
                 ].map(([label, val]) =>
                   val ? (
                     <div key={String(label)}>
@@ -115,9 +119,15 @@ export function PDFReviewLayout() {
                         key={i}
                         className="mb-1 rounded bg-gray-50 px-2 py-1 text-xs"
                       >
-                        {li.timekeeper && <span className="font-medium">{li.timekeeper} – </span>}
+                        {li.timekeeper && (
+                          <span className="font-medium">{li.timekeeper} – </span>
+                        )}
                         {li.description && <span>{li.description} </span>}
-                        {li.amount != null && <span className="float-right font-semibold">${li.amount}</span>}
+                        {li.amount != null && (
+                          <span className="float-right font-semibold">
+                            ${li.amount}
+                          </span>
+                        )}
                       </dd>
                     ))}
                   </div>
