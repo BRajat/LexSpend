@@ -15,6 +15,9 @@ frontend/out/
 frontend/.env.local
 frontend/.env
 
+# Docker / root env
+.env
+
 # OS
 .DS_Store
 Thumbs.db
