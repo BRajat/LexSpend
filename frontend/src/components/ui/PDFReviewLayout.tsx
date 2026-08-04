@@ -31,7 +31,10 @@ export function PDFReviewLayout() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setPdfUrl(URL.createObjectURL(file));
+    const objectUrl = URL.createObjectURL(file);
+    // Only allow blob: URLs created by the browser to prevent XSS via src injection.
+    if (!objectUrl.startsWith("blob:")) return;
+    setPdfUrl(objectUrl);
     setParsed(null);
     setError(null);
     setLoading(true);
