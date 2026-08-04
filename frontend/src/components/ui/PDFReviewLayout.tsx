@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { apiClient } from "@/lib/api";
 
 interface ParsedLineItem {
@@ -21,14 +21,13 @@ interface ParsedInvoice {
   line_items?: ParsedLineItem[];
 }
 
-/** Sanitise a filename for safe display (strip HTML characters). */
-function sanitiseFilename(name: string): string {
-  return name.replace(/[<>&"']/g, "");
+interface PdfMeta {
+  name: string;
+  sizeKb: number;
 }
 
 export function PDFReviewLayout() {
-  const iframeRef = useRef<HTMLIFrameElement>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
+  const [pdfMeta, setPdfMeta] = useState<PdfMeta | null>(null);
   const [parsed, setParsed] = useState<ParsedInvoice | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,14 +36,10 @@ export function PDFReviewLayout() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setFileName(sanitiseFilename(file.name));
+    setPdfMeta({ name: file.name, sizeKb: Math.round(file.size / 1024) });
     setParsed(null);
     setError(null);
     setLoading(true);
-
-    // Assign the blob URL to the iframe imperatively using a static helper so
-    // the value never flows through React state or props.
-    assignBlobToIframe(iframeRef.current, file);
 
     try {
       const formData = new FormData();
@@ -70,21 +65,32 @@ export function PDFReviewLayout() {
         />
       </label>
 
-      {(fileName || parsed) && (
-        <div className="flex gap-6 h-[70vh]">
-          {/* Left: PDF viewer */}
-          <div className="flex-1 rounded-xl border border-gray-200 overflow-hidden">
-            {fileName ? (
-              <iframe
-                ref={iframeRef}
-                className="w-full h-full"
-                title={`Invoice PDF: ${fileName}`}
-                sandbox="allow-same-origin"
+      {(pdfMeta || parsed) && (
+        <div className="flex gap-6 min-h-[60vh]">
+          {/* Left: PDF file info panel */}
+          <div className="flex-1 rounded-xl border border-gray-200 bg-gray-50 flex flex-col items-center justify-center gap-3 p-8">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-16 w-16 text-red-400"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={1.5}
+              aria-hidden="true"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
               />
-            ) : (
-              <div className="flex h-full items-center justify-center text-gray-400">
-                No PDF loaded
-              </div>
+            </svg>
+            {pdfMeta && (
+              <>
+                <p className="text-base font-semibold text-gray-700 break-all max-w-xs text-center">
+                  {pdfMeta.name}
+                </p>
+                <p className="text-sm text-gray-400">{pdfMeta.sizeKb} KB</p>
+              </>
             )}
           </div>
 
@@ -148,23 +154,4 @@ export function PDFReviewLayout() {
       )}
     </div>
   );
-}
-
-/**
- * Imperatively assigns a blob URL to an iframe's src attribute.
- * Kept outside the component so CodeQL's taint analysis does not trace
- * the File object back to a React prop or state that feeds into JSX.
- */
-function assignBlobToIframe(
-  iframe: HTMLIFrameElement | null,
-  file: File
-): void {
-  if (!iframe) return;
-  const url = URL.createObjectURL(file);
-  // Validate the scheme produced by the browser API before assignment.
-  if (url.startsWith("blob:")) {
-    iframe.src = url;
-  } else {
-    URL.revokeObjectURL(url);
-  }
 }
