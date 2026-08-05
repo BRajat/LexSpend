@@ -25,10 +25,12 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-lexspend}:${POSTGRES_PASSWORD:-lexspend}@db:5432/${POSTGRES_DB:-lexspend}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o-mini}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      GROQ_MODEL: ${GROQ_MODEL:-llama-3.1-8b-instant}
       CORS_ORIGINS: '["http://localhost:3000"]'
       SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+    volumes:
+      - ./backend/app:/app/app
     ports:
       - "8000:8000"
 
@@ -40,6 +42,11 @@ services:
       - backend
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+    volumes:
+    - ./frontend/src:/app/src              # Mount source code only
+    - ./frontend/public:/app/public        # Mount public assets
+    - ./frontend/next.config.js:/app/next.config.js
+    - ./frontend/tsconfig.json:/app/tsconfig.json
     ports:
       - "3000:3000"
 

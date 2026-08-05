@@ -24,12 +24,26 @@ cd LexSpend
 
 #### Set up a virtual environment and install dependencies
 
+If `uv` is not installed, install [UV](./MISC.README.md) instructions here
+
+
 ```bash
 cd backend
-python -m venv .venv
+uv python install 3.11
+uv python pin 3.11
+uv venv 
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
+
+#### Generate dummy pdf file for testing
+
+Check if reportlab oython library is installed. Then run -
+```bash
+cd legal_docs
+python generator_file.py
+```
+Generates a test_invoice.pdf file
 
 #### Configure environment variables
 
@@ -37,8 +51,8 @@ Create a `.env` file inside the `backend/` directory:
 
 ```env
 DATABASE_URL=******localhost:5432/lexspend
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-4o-mini
+GROQ_API_KEY=sk-...
+GROQ_MODEL=llama-3.1-8b-instant
 CORS_ORIGINS=["http://localhost:3000"]
 SECRET_KEY=change-me-in-production
 ```
@@ -103,7 +117,7 @@ The project ships with a `docker-compose.yml` that wires up three services:
 
 ```bash
 cp .env.example .env
-# Edit .env and fill in OPENAI_API_KEY and any other values you want to change
+# Edit .env and fill in GROQ_API_KEY and any other values you want to change
 ```
 
 ### 2. Build and start all services
