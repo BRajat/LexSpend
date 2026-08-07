@@ -1,0 +1,93 @@
+# Create a firm
+curl -X POST "http://localhost:8000/api/v1/firms/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Acme Law Group",
+    "contact_email": "contact@acmelaw.com",
+    "status": "active"
+  }'
+
+# Create a matter
+curl -X POST "http://localhost:8000/api/v1/matters/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "firm_id": 1,
+    "name": "Matter A",
+    "owner": "Jane Doe",
+    "status": "open"
+  }'
+
+# Create a user
+curl -X POST "http://localhost:8000/api/v1/users/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Smith",
+    "email": "john@example.com",
+    "password_hash": "hashed-password",
+    "role": "partner",
+    "firm_id": 1
+  }'
+
+# Create an invoice
+curl -X POST "http://localhost:8000/api/v1/invoices/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "matter_id": 1,
+    "firm_id": 1,
+    "invoice_no": "INV-001",
+    "invoice_date": "2026-08-07",
+    "total_amount": 1500.00,
+    "status": "submitted"
+  }'
+
+# Create a line item
+curl -X POST "http://localhost:8000/api/v1/line-items/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "invoice_id": 1,
+    "timekeeper": "Jane Doe",
+    "hours": 3.5,
+    "rate": 250.0,
+    "amount": 875.0
+  }'
+
+# Create a budget
+curl -X POST "http://localhost:8000/api/v1/budgets/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "matter_id": 1,
+    "allocated_amt": 10000.0,
+    "threshold_pct": 80.0
+  }'
+
+# Create a budget ledger entry
+curl -X POST "http://localhost:8000/api/v1/budget-ledgers/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "budget_id": 1,
+    "invoice_id": 1,
+    "amount": 875.0,
+    "entry_type": "invoice_approved",
+    "created_at": "2026-08-07T12:00:00Z"
+  }'
+
+# Create an alert
+curl -X POST "http://localhost:8000/api/v1/alerts/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "budget_id": 1,
+    "type": "threshold",
+    "message": "Budget threshold reached",
+    "created_at": "2026-08-07T12:00:00Z"
+  }'
+
+# Create an audit log
+curl -X POST "http://localhost:8000/api/v1/audit-logs/" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "invoice_id": 1,
+    "user_id": 1,
+    "action": "approved",
+    "notes": "Invoice approved by partner",
+    "timestamp": "2026-08-07T12:00:00Z"
+  }'

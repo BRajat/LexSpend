@@ -1,0 +1,106 @@
+Alembic Usage for LexSpend Backend
+==================================
+
+This project uses Alembic for SQL schema migrations in the `backend` service.
+The main Alembic config file is `backend/alembic.ini`, and migration scripts live in `backend/alembic/versions/`.
+
+Setup
+-----
+
+1. Create and activate your Python environment:
+
+   ```bash
+   cd backend
+   python -m venv .venv
+   .venv/Scripts/activate    # Windows PowerShell / CMD
+   # or on Unix/macOS: source .venv/bin/activate
+   ```
+
+2. Install the backend dependencies, including Alembic:
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. Verify the database URL in `backend/app/core/database.py` matches your environment.
+   The default is:
+
+   ```python
+   DATABASE_URL = "sqlite+aiosqlite:///./legal_spend.db"
+   ```
+
+4. If you need to initialize the database tables for the first time, run:
+
+   ```bash
+   python -c "from app.core.database import create_db_and_tables; import asyncio; asyncio.run(create_db_and_tables())"
+   ```
+
+Generating a New Migration
+--------------------------
+
+1. Make your SQLModel model changes in `backend/app/models/`.
+2. Generate a new Alembic revision:
+
+   ```bash
+   alembic revision --autogenerate -m "describe change"
+   ```
+
+3. Review and edit the generated migration file in `backend/alembic/versions/` if needed.
+
+Applying Migrations
+-------------------
+
+1. Apply all pending migrations to the current database:
+
+   ```bash
+   alembic upgrade head
+   ```
+
+2. Apply migrations to a specific revision:
+
+   ```bash
+   alembic upgrade <revision_id>
+   ```
+
+Rolling Back Migrations
+-----------------------
+
+1. Roll back a single migration step:
+
+   ```bash
+   alembic downgrade -1
+   ```
+
+2. Roll back to a specific revision:
+
+   ```bash
+   alembic downgrade <revision_id>
+   ```
+
+3. Return to the base (no migrations applied):
+
+   ```bash
+   alembic downgrade base
+   ```
+
+Useful Commands
+---------------
+
+- Show current revision:
+
+  ```bash
+  alembic current
+  ```
+
+- Show migration history:
+
+  ```bash
+  alembic history --verbose
+  ```
+
+Notes
+-----
+
+- If your project uses a different Python interpreter or virtual environment, activate it before running Alembic.
+- If Alembic cannot find the config, run commands from the `backend` folder or pass `-c backend/alembic.ini`.
+- Keep generated migration scripts under source control.

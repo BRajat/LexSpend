@@ -7,6 +7,7 @@ backend/.env
 backend/*.egg-info/
 backend/dist/
 backend/.pytest_cache/
+backend/legal_spend.db
 
 # Node / frontend
 frontend/node_modules/
@@ -21,3 +22,6 @@ frontend/.env
 # OS
 .DS_Store
 Thumbs.db
+
+# db
+backend/*.db
